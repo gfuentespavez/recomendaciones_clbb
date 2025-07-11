@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Conce recomienco</title>
+  <title>Mapa CityLab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
@@ -14,12 +14,14 @@
 </head>
 <body>
 <div id="map"></div>
+
 <script>
+  // Set your Mapbox token and style
   mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
 
   const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/germanfuentes/cmcybcvt501b001s4473g8ttb',// Replace with your style once working
+    style: 'mapbox://styles/germanfuentes/cmcybcvt501b001s4473g8ttb',
     center: [-73.05, -36.82],
     zoom: 12
   });
@@ -28,57 +30,44 @@
 
   fetch(csvUrl)
           .then(response => response.text())
-          .then(text => {
-            const parsed = Papa.parse(text, { header: true });
-            console.log("Parsed rows:", parsed.data);
+          .then(csvText => {
+            const parsed = Papa.parse(csvText, { header: true });
+            const data = parsed.data.filter(r => r.Latitude && r.Longitude);
 
-            const geojson = {
-              type: "FeatureCollection",
-              features: parsed.data
-                      .map(row => {
-                        const lat = parseFloat((row['Latitude'] || '').trim());
-                        const lon = parseFloat((row['Longitude'] || '').trim());
-                        if (isNaN(lat) || isNaN(lon)) return null;
+            data.forEach(row => {
+              const lat = parseFloat((row.Latitude || '').trim());
+              const lon = parseFloat((row.Longitude || '').trim());
+              if (isNaN(lat) || isNaN(lon)) return;
 
-                        return {
-                          type: "Feature",
-                          geometry: {
-                            type: "Point",
-                            coordinates: [lon, lat]
-                          },
-                          properties: {
-                            title: row['Lugar']?.trim() || 'Sin nombre',
-                            comuna: row['Comuna']?.trim() || '',
-                            comentario: row['Comentario']?.trim() || '',
-                            usuario: row['Usuario']?.trim() || ''
-                          }
-                        };
-                      })
-                      .filter(f => f !== null)
-            };
+              const el = document.createElement('div');
+              el.style.width = '18px';
+              el.style.height = '18px';
+              el.style.borderRadius = '50%';
+              el.style.backgroundColor = '#f44336';
+              el.style.border = '2px solid white';
 
-            console.log("GeoJSON:", geojson);
+              const popupHTML = `
+          <div style="
+            font-family: system-ui, sans-serif;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            padding: 12px;
+            max-width: 240px;
+          ">
+            <h3 style="margin: 0 0 6px; font-size: 1rem; color: #111;">📍 ${row.Lugar}</h3>
+            <p style="margin: 4px 0 8px; font-size: 0.95rem; color: #333;">${row.Comentario}</p>
+            <div style="font-size: 0.8rem; color: #777;">
+              <span>${row.Usuario}</span>
+            </div>
+          </div>
+        `;
 
-            geojson.features.forEach(feature => {
-              new mapboxgl.Marker({ color: "#FF5722" })
-                      .setLngLat(feature.geometry.coordinates)
-                      .setPopup(
-                              new mapboxgl.Popup({ offset: 25 })
-                                      .setHTML(`
-      <div style="font-family: sans-serif; padding: 4px 0;">
-        <h3 style="margin:0; font-size: 1rem; color: #111;">📍 ${feature.properties.title}</h3>
-        <p style="margin: 4px 0; font-size: 0.95rem;">${feature.properties.comentario}</p>
-        <p style="margin: 0; color: #666; font-size: 0.85rem;"><strong>${feature.properties.tema}</strong> – ${feature.properties.usuario}</p>
-      </div>
-    `)
-                      )
-
+              new mapboxgl.Marker({ element: el })
+                      .setLngLat([lon, lat])
+                      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML))
                       .addTo(map);
             });
-          })
-          .catch(error => {
-            console.error("CSV fetch failed:", error);
-            alert("No se pudo cargar el CSV.");
           });
 </script>
 </body>
