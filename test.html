@@ -1,118 +1,198 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Mapa Temático Conce</title>
+  <title>Mapa CityLab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Mapbox -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { position: absolute; top: 40px; bottom: 0; width: 100%; }
-    #menu {
+    html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, sans-serif; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+    .navbar { z-index: 4; }
+    #side-panel {
+      z-index: 3;
       position: absolute;
-      top: 0; left: 0;
-      width: 100%;
+      top: 56px;
+      left: 0;
+      bottom: 0;
+      width: 260px;
       background: white;
-      padding: 8px;
-      font-family: sans-serif;
-      z-index: 1;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      border-right: 1px solid #ddd;
+      padding: 1rem;
     }
+    .mapboxgl-popup-content {
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      padding: 12px;
+      max-width: 240px;
+    }
+    .mapboxgl-popup-content h3 { margin: 0 0 6px; font-size: 1rem; color: #111; }
+    .mapboxgl-popup-content p { margin: 4px 0 8px; font-size: 0.95rem; color: #333; }
+    .mapboxgl-popup-content span { font-size: 0.8rem; color: #777; }
   </style>
 </head>
+
 <body>
-<div id="menu">
-  <label for="theme-filter">Filtrar por tema: </label>
-  <select id="theme-filter">
-    <option value="">Todos</option>
-  </select>
-</div>
 <div id="map"></div>
 
-<script>
-  mapboxgl.accessToken = 'pk._4skowp2WM5yDc_sywRDkA';
+<!-- Navbar -->
+<nav class="navbar navbar-light bg-light px-3">
+  <a class="navbar-brand d-flex align-items-center" href="#">
+    <img src="logo1.png" alt="Logo" width="103" height="40" class="me-2" />
+    <span>Mapa CityLab</span>
+  </a>
+  <div class="d-flex align-items-center">
+    <img src="logo2.png" alt="Logo2" height="40" class="me-3" />
+    <button class="btn btn-outline-primary btn-sm">Ir a citylabbiobio.cl</button>
+  </div>
+</nav>
 
+<!-- Side Panel -->
+<div id="side-panel">
+  <h5 class="mb-3">Filtrar lugares</h5>
+  <button class="btn btn-outline-secondary btn-sm w-100 mb-2 category-btn" data-category="all">🗂️ Todos los lugares</button>
+  <button class="btn btn-outline-dark btn-sm w-100 mb-2 category-btn" data-category="🍺 Cerveza local">🍺 Cerveza local</button>
+  <button class="btn btn-outline-danger btn-sm w-100 mb-2 category-btn" data-category="💋 Give me the lovin'">💋 Give me the lovin'</button>
+  <button class="btn btn-outline-success btn-sm w-100 mb-2 category-btn" data-category="🕵️ Dato oculto">🕵️ Dato oculto</button>
+  <button class="btn btn-outline-primary btn-sm w-100 mb-2 category-btn" data-category="🎭 Panoramas culturales">🎭 Panoramas culturales</button>
+  <button class="btn btn-outline-warning btn-sm w-100 mb-2 category-btn" data-category="🍜 Comida asiática">🍜 Comida asiática</button>
+  <button class="btn btn-outline-info btn-sm w-100 mb-2 category-btn" data-category="🌄 Mirador">🌄 Mirador</button>
+
+
+  <button class="btn btn-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#submitModal">
+    📍 Agrega tu lugar favorito
+  </button>
+</div>
+
+<!-- Modal Form -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="submitForm" class="modal-content" target="_blank" action="https://docs.google.com/forms/d/e/1FAIpQLSeusWAsOC2Y4ND8jlAiy-Y1TmX-Qk2fqTL5sYFPMk7rM3cNWg/formResponse">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar lugar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Formulario -->
+      <div class="modal-body">
+        <div class="mb-2">
+          <label for="lugar" class="form-label">Lugar</label>
+          <input type="text" class="form-control" id="lugar" name="entry.914674059" required>
+        </div>
+        <div class="mb-2">
+          <label for="comuna" class="form-label">Comuna</label>
+          <input type="text" class="form-control" id="comuna" name="entry.1656433693" required>
+        </div>
+        <div class="mb-2">
+          <label for="categoria" class="form-label">Categoría</label>
+          <select class="form-select" id="categoria" name="entry.308177650" required>
+            <option selected disabled value="">Selecciona una categoría</option>
+            <option value="🍺 Cerveza local">🍺 Cerveza local</option>
+            <option value="💋 Give me the lovin'">💋 Give me the lovin'</option>
+            <option value="🕵️ Dato oculto">🕵️ Dato oculto</option>
+            <option value="🎭 Panoramas culturales">🎭 Panoramas culturales</option>
+            <option value="🍜 Comida asiática">🍜 Comida asiática</option>
+            <option value="🌄 Mirador">🌄 Mirador</option>
+          </select>
+
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Enviar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
   const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/germanfuentes/cm6avspnl000901shh7p49pvh',
+    style: 'mapbox://styles/germanfuentes/cmcybcvt501b001s4473g8ttb',
     center: [-73.05, -36.82],
     zoom: 12
   });
 
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCzxJvWWJXZtk09A_BMIlPSscfx20nB2oAYVIGbwfW3IkVZuC6tkBuciiGku7eRRZoUg6LQ4Y-jC4i/pub?output=csv';
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRUV15h0Y_u0KtUYdOcc_WiIEzNe_xMdvaAxODqfg8NtIuBQ1gkRghUEwsRYH7aHgBbtmjS49c4AORu/pub?output=csv';
 
-  const themeColors = {
-    'Primer beso': '#e91e63',
-    'Cerveza local': '#ff9800',
-    'Comida asiática': '#4caf50',
-    'Dato oculto': '#3f51b5',
-    'Paseo chill': '#009688',
-    'Otro': '#795548'
-  };
+  let markers = [];
 
-  let allMarkers = [];
+  function loadData(category = null) {
+    markers.forEach(m => m.remove());
+    markers = [];
 
-  fetch(csvUrl)
-          .then(response => response.text())
-          .then(text => {
-            const parsed = Papa.parse(text, { header: true });
-            const data = parsed.data.filter(r => r.Latitude && r.Longitude);
-            const themes = new Set();
+    const categoryKey = '¿En qué categoría recomiendas este lugar?';
 
-            data.forEach(row => {
-              const lat = parseFloat((row.Latitude || '').trim());
-              const lon = parseFloat((row.Longitude || '').trim());
-              if (isNaN(lat) || isNaN(lon)) return;
+    fetch(csvUrl)
+            .then(response => response.text())
+            .then(csvText => {
+              const parsed = Papa.parse(csvText, { header: true });
+              const data = parsed.data.filter(r => r.Latitude && r.Longitude);
 
-              const tema = (row.Tema || 'Otro').trim();
-              themes.add(tema);
+              data.forEach(row => {
+                const rowCategory = (row[categoryKey] || '').trim();
+                const selectedCategory = (category || '').trim();
 
-              const color = themeColors[tema] || '#2196f3';
+                if (selectedCategory && selectedCategory !== 'all' && rowCategory !== selectedCategory) return;
 
-              const el = document.createElement('div');
-              el.className = 'marker';
-              el.style.width = '20px';
-              el.style.height = '20px';
-              el.style.borderRadius = '50%';
-              el.style.backgroundColor = color;
-              el.style.border = '2px solid white';
+                const lat = parseFloat((row.Latitude || '').trim());
+                const lon = parseFloat((row.Longitude || '').trim());
+                if (isNaN(lat) || isNaN(lon)) return;
 
-              const marker = new mapboxgl.Marker({ element: el })
-                      .setLngLat([lon, lat])
-                      .setPopup(new mapboxgl.Popup({ offset: 25 })
-                              .setHTML(`<strong>${row.Lugar}</strong><br><em>${row.Comentario}</em><br><small>${row.Usuario}</small><br><b>${tema}</b>`))
-                      .addTo(map);
+                const el = document.createElement('div');
+                el.style.width = '18px';
+                el.style.height = '18px';
+                el.style.borderRadius = '50%';
+                el.style.backgroundColor = '#f44336';
+                el.style.border = '2px solid white';
 
-              marker._theme = tema;
-              allMarkers.push(marker);
+                const popupHTML = `
+          <h3>📍 ${row.Lugar}</h3>
+          <p>${row.Comentario}</p>
+          <span>${row.Usuario}</span>
+        `;
+
+                const marker = new mapboxgl.Marker({ element: el })
+                        .setLngLat([lon, lat])
+                        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML))
+                        .addTo(map);
+
+                markers.push(marker);
+              });
             });
-
-            populateFilter([...themes].sort());
-          });
-
-  function populateFilter(themes) {
-    const select = document.getElementById('theme-filter');
-    themes.forEach(theme => {
-      const opt = document.createElement('option');
-      opt.value = theme;
-      opt.textContent = theme;
-      select.appendChild(opt);
-    });
-
-    select.addEventListener('change', () => {
-      const selected = select.value;
-      allMarkers.forEach(m => {
-        const el = m.getElement();
-        if (!selected || m._theme === selected) {
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      });
-    });
   }
+
+  document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.getAttribute('data-category');
+      loadData(category);
+    });
+  });
+
+
+  loadData()
+
+  // Refrescar el mapa cada 30 segundos (60000 ms)
+  setInterval(() => {
+    loadData();
+    console.log('Mapa actualizado automáticamente');
+  }, 30000);
+
 </script>
+
+
 </body>
 </html>

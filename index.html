@@ -4,19 +4,59 @@
   <meta charset="utf-8" />
   <title>Mapa CityLab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Mapbox -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+  <!-- PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
   <style>
-    html, body { margin: 0; padding: 0; height: 100%; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    /* Global popup styling */
+    .mapboxgl-popup-content {
+      font-family: system-ui, sans-serif;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      padding: 12px;
+      max-width: 240px;
+    }
+
+    .mapboxgl-popup-content h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      color: #111;
+    }
+
+    .mapboxgl-popup-content p {
+      margin: 4px 0 8px;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .mapboxgl-popup-content span {
+      font-size: 0.8rem;
+      color: #777;
+    }
   </style>
 </head>
+
 <body>
 <div id="map"></div>
 
 <script>
-  // Set your Mapbox token and style
   mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
 
   const map = new mapboxgl.Map({
@@ -47,25 +87,16 @@
               el.style.border = '2px solid white';
 
               const popupHTML = `
-          <div style="
-            font-family: system-ui, sans-serif;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            padding: 12px;
-            max-width: 240px;
-          ">
-            <h3 style="margin: 0 0 6px; font-size: 1rem; color: #111;">📍 ${row.Lugar}</h3>
-            <p style="margin: 4px 0 8px; font-size: 0.95rem; color: #333;">${row.Comentario}</p>
-            <div style="font-size: 0.8rem; color: #777;">
-              <span>${row.Usuario}</span>
-            </div>
-          </div>
+          <h3>📍 ${row.Lugar}</h3>
+          <p>${row.Comentario}</p>
+          <span>${row.Usuario}</span>
         `;
 
               new mapboxgl.Marker({ element: el })
                       .setLngLat([lon, lat])
-                      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML))
+                      .setPopup(
+                              new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML)
+                      )
                       .addTo(map);
             });
           });
