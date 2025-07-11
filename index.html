@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Conce recomienco</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/germanfuentes/cmcybcvt501b001s4473g8ttb',// Replace with your style once working
+    center: [-73.05, -36.82],
+    zoom: 12
+  });
+
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCzxJvWWJXZtk09A_BMIlPSscfx20nB2oAYVIGbwfW3IkVZuC6tkBuciiGku7eRRZoUg6LQ4Y-jC4i/pub?output=csv';
+
+  fetch(csvUrl)
+          .then(response => response.text())
+          .then(text => {
+            const parsed = Papa.parse(text, { header: true });
+            console.log("Parsed rows:", parsed.data);
+
+            const geojson = {
+              type: "FeatureCollection",
+              features: parsed.data
+                      .map(row => {
+                        const lat = parseFloat((row['Latitude'] || '').trim());
+                        const lon = parseFloat((row['Longitude'] || '').trim());
+                        if (isNaN(lat) || isNaN(lon)) return null;
+
+                        return {
+                          type: "Feature",
+                          geometry: {
+                            type: "Point",
+                            coordinates: [lon, lat]
+                          },
+                          properties: {
+                            title: row['Lugar']?.trim() || 'Sin nombre',
+                            comuna: row['Comuna']?.trim() || '',
+                            comentario: row['Comentario']?.trim() || '',
+                            usuario: row['Usuario']?.trim() || ''
+                          }
+                        };
+                      })
+                      .filter(f => f !== null)
+            };
+
+            console.log("GeoJSON:", geojson);
+
+            geojson.features.forEach(feature => {
+              new mapboxgl.Marker({ color: "#FF5722" })
+                      .setLngLat(feature.geometry.coordinates)
+                      .setPopup(
+                              new mapboxgl.Popup({ offset: 25 })
+                                      .setHTML(`
+      <div style="font-family: sans-serif; padding: 4px 0;">
+        <h3 style="margin:0; font-size: 1rem; color: #111;">📍 ${feature.properties.title}</h3>
+        <p style="margin: 4px 0; font-size: 0.95rem;">${feature.properties.comentario}</p>
+        <p style="margin: 0; color: #666; font-size: 0.85rem;"><strong>${feature.properties.tema}</strong> – ${feature.properties.usuario}</p>
+      </div>
+    `)
+                      )
+
+                      .addTo(map);
+            });
+          })
+          .catch(error => {
+            console.error("CSV fetch failed:", error);
+            alert("No se pudo cargar el CSV.");
+          });
+</script>
+</body>
+</html>

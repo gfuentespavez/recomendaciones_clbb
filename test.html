@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mapa Temático Conce</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { position: absolute; top: 40px; bottom: 0; width: 100%; }
+    #menu {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      background: white;
+      padding: 8px;
+      font-family: sans-serif;
+      z-index: 1;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+<div id="menu">
+  <label for="theme-filter">Filtrar por tema: </label>
+  <select id="theme-filter">
+    <option value="">Todos</option>
+  </select>
+</div>
+<div id="map"></div>
+
+<script>
+  mapboxgl.accessToken = 'pk._4skowp2WM5yDc_sywRDkA';
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/germanfuentes/cm6avspnl000901shh7p49pvh',
+    center: [-73.05, -36.82],
+    zoom: 12
+  });
+
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCzxJvWWJXZtk09A_BMIlPSscfx20nB2oAYVIGbwfW3IkVZuC6tkBuciiGku7eRRZoUg6LQ4Y-jC4i/pub?output=csv';
+
+  const themeColors = {
+    'Primer beso': '#e91e63',
+    'Cerveza local': '#ff9800',
+    'Comida asiática': '#4caf50',
+    'Dato oculto': '#3f51b5',
+    'Paseo chill': '#009688',
+    'Otro': '#795548'
+  };
+
+  let allMarkers = [];
+
+  fetch(csvUrl)
+          .then(response => response.text())
+          .then(text => {
+            const parsed = Papa.parse(text, { header: true });
+            const data = parsed.data.filter(r => r.Latitude && r.Longitude);
+            const themes = new Set();
+
+            data.forEach(row => {
+              const lat = parseFloat((row.Latitude || '').trim());
+              const lon = parseFloat((row.Longitude || '').trim());
+              if (isNaN(lat) || isNaN(lon)) return;
+
+              const tema = (row.Tema || 'Otro').trim();
+              themes.add(tema);
+
+              const color = themeColors[tema] || '#2196f3';
+
+              const el = document.createElement('div');
+              el.className = 'marker';
+              el.style.width = '20px';
+              el.style.height = '20px';
+              el.style.borderRadius = '50%';
+              el.style.backgroundColor = color;
+              el.style.border = '2px solid white';
+
+              const marker = new mapboxgl.Marker({ element: el })
+                      .setLngLat([lon, lat])
+                      .setPopup(new mapboxgl.Popup({ offset: 25 })
+                              .setHTML(`<strong>${row.Lugar}</strong><br><em>${row.Comentario}</em><br><small>${row.Usuario}</small><br><b>${tema}</b>`))
+                      .addTo(map);
+
+              marker._theme = tema;
+              allMarkers.push(marker);
+            });
+
+            populateFilter([...themes].sort());
+          });
+
+  function populateFilter(themes) {
+    const select = document.getElementById('theme-filter');
+    themes.forEach(theme => {
+      const opt = document.createElement('option');
+      opt.value = theme;
+      opt.textContent = theme;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener('change', () => {
+      const selected = select.value;
+      allMarkers.forEach(m => {
+        const el = m.getElement();
+        if (!selected || m._theme === selected) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>
