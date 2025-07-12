@@ -79,7 +79,7 @@
 <!-- Modal Form -->
 <div class="modal fade" id="submitModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form id="submitForm" class="modal-content" target="_blank" action="https://docs.google.com/forms/d/e/1FAIpQLSeusWAsOC2Y4ND8jlAiy-Y1TmX-Qk2fqTL5sYFPMk7rM3cNWg/formResponse">
+    <form id="submitForm" class="modal-content" action="https://docs.google.com/forms/d/e/1FAIpQLSeusWAsOC2Y4ND8jlAiy-Y1TmX-Qk2fqTL5sYFPMk7rM3cNWg/formResponse">
       <div class="modal-header">
         <h5 class="modal-title">Agregar lugar</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -191,8 +191,46 @@
     console.log('Mapa actualizado automáticamente');
   }, 30000);
 
+
+  document.getElementById('submitForm').addEventListener('submit', function (e) {
+    e.preventDefault(); // Evita que se recargue o abra otra pestaña
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const query = new URLSearchParams(formData).toString();
+
+    fetch(form.action, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: query
+    }).then(() => {
+      // Cierra el modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('submitModal'));
+      modal.hide();
+
+      // Limpia el form
+      form.reset();
+
+      // Muestra el toast
+      const toast = new bootstrap.Toast(document.getElementById('successToast'));
+      toast.show();
+
+      // Vuelve a cargar los datos del mapa
+      loadData();
+    });
+  });
+
 </script>
 
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">¡Gracias por tu recomendación! 💚</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
