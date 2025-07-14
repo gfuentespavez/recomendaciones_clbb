@@ -36,7 +36,7 @@ function loadData(category = null) {
                 el.style.width = '18px';
                 el.style.height = '18px';
                 el.style.borderRadius = '50%';
-                el.style.backgroundColor = '#f44336';
+                el.style.backgroundColor = '#ffcc05';
                 el.style.border = '2px solid white';
 
                 const popupHTML = `
