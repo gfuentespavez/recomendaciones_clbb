@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Mapa CityLab</title>
+  <title>
+    Recomiendo Concepción - City Lab Biobío
+  </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Mapbox -->
@@ -16,117 +18,96 @@
   <!-- PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <style>
-    html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, sans-serif; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
-    .navbar { z-index: 4; }
-    #side-panel {
-      z-index: 3;
-      position: absolute;
-      top: 56px;
-      left: 0;
-      bottom: 0;
-      width: 260px;
-      background: white;
-      overflow-y: auto;
-      border-right: 1px solid #ddd;
-      padding: 1rem;
-    }
-    .mapboxgl-popup-content {
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      padding: 12px;
-      max-width: 240px;
-    }
-    .mapboxgl-popup-content h3 { margin: 0 0 6px; font-size: 1rem; color: #111; }
-    .mapboxgl-popup-content p { margin: 4px 0 8px; font-size: 0.95rem; color: #333; }
-    .mapboxgl-popup-content span { font-size: 0.8rem; color: #777; }
-  </style>
+  <!-- Estilos -->
+  <link rel="stylesheet" href="styles.css" />
+
 </head>
 
 <body>
-<div id="map"></div>
+  <div id="map"></div>
 
-<!-- Navbar -->
-<nav class="navbar navbar-light bg-light px-3">
-  <a class="navbar-brand d-flex align-items-center" href="#">
-    <img src="logo1.png" alt="Logo" width="103" height="40" class="me-2" />
-    <span>Mapa CityLab</span>
-  </a>
-  <div class="d-flex align-items-center">
-    <img src="logo2.png" alt="Logo2" height="40" class="me-3" />
-    <button class="btn btn-outline-primary btn-sm">Ir a citylabbiobio.cl</button>
+  <!-- Navbar -->
+  <nav class="navbar navbar-light bg-light px-3">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="logo1.png" alt="Logo" width="103" height="40" class="me-2" />
+      <span>Mapa CityLab</span>
+    </a>
+    <div class="d-flex align-items-center">
+      <img src="logo2.png" alt="Logo2" height="40" class="me-3" />
+      <button class="btn btn-outline-primary btn-sm">Ir a citylabbiobio.cl</button>
+    </div>
+  </nav>
+
+  <!-- Side Panel -->
+  <div id="side-panel">
+    <h5 class="mb-3">Filtrar lugares</h5>
+    <button class="btn btn-outline-secondary btn-sm w-100 mb-2 category-btn" data-category="all">🗂️ Todos los lugares</button>
+    <button class="btn btn-outline-dark btn-sm w-100 mb-2 category-btn" data-category="🍺 Cerveza local">🍺 Cerveza local</button>
+    <button class="btn btn-outline-danger btn-sm w-100 mb-2 category-btn" data-category="💋 Give me the lovin'">💋 Give me the lovin'</button>
+    <button class="btn btn-outline-success btn-sm w-100 mb-2 category-btn" data-category="🕵️ Dato oculto">🕵️ Dato oculto</button>
+    <button class="btn btn-outline-primary btn-sm w-100 mb-2 category-btn" data-category="🎭 Panoramas culturales">🎭 Panoramas culturales</button>
+    <button class="btn btn-outline-warning btn-sm w-100 mb-2 category-btn" data-category="🍜 Comida asiática">🍜 Comida asiática</button>
+    <button class="btn btn-outline-info btn-sm w-100 mb-2 category-btn" data-category="🌄 Mirador">🌄 Mirador</button>
+    <button class="btn btn-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#submitModal">
+      📍 Agrega tu lugar favorito
+    </button>
+    <p>
+      Texto acá.
+      Recomendaciones por los usuarios de la ciudad.
+    </p>
   </div>
-</nav>
 
-<!-- Side Panel -->
-<div id="side-panel">
-  <h5 class="mb-3">Filtrar lugares</h5>
-  <button class="btn btn-outline-secondary btn-sm w-100 mb-2 category-btn" data-category="all">🗂️ Todos los lugares</button>
-  <button class="btn btn-outline-dark btn-sm w-100 mb-2 category-btn" data-category="🍺 Cerveza local">🍺 Cerveza local</button>
-  <button class="btn btn-outline-danger btn-sm w-100 mb-2 category-btn" data-category="💋 Give me the lovin'">💋 Give me the lovin'</button>
-  <button class="btn btn-outline-success btn-sm w-100 mb-2 category-btn" data-category="🕵️ Dato oculto">🕵️ Dato oculto</button>
-  <button class="btn btn-outline-primary btn-sm w-100 mb-2 category-btn" data-category="🎭 Panoramas culturales">🎭 Panoramas culturales</button>
-  <button class="btn btn-outline-warning btn-sm w-100 mb-2 category-btn" data-category="🍜 Comida asiática">🍜 Comida asiática</button>
-  <button class="btn btn-outline-info btn-sm w-100 mb-2 category-btn" data-category="🌄 Mirador">🌄 Mirador</button>
-
-
-  <button class="btn btn-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#submitModal">
-    📍 Agrega tu lugar favorito
-  </button>
-</div>
-
-<!-- Modal Form -->
-<div class="modal fade" id="submitModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="submitForm" class="modal-content" action="https://docs.google.com/forms/d/e/1FAIpQLSeusWAsOC2Y4ND8jlAiy-Y1TmX-Qk2fqTL5sYFPMk7rM3cNWg/formResponse">
-      <div class="modal-header">
-        <h5 class="modal-title">Agregar lugar</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <!-- Formulario -->
-      <div class="modal-body">
-        <div class="mb-2">
-          <label for="lugar" class="form-label">Lugar</label>
-          <input type="text" class="form-control" id="lugar" name="entry.914674059" required>
-        </div>
-        <div class="mb-2">
-          <label for="comuna" class="form-label">Comuna</label>
-          <input type="text" class="form-control" id="comuna" name="entry.1656433693" required>
-        </div>
-        <div class="mb-2">
-          <label for="categoria" class="form-label">Categoría</label>
-          <select class="form-select" id="categoria" name="entry.308177650" required>
-            <option selected disabled value="">Selecciona una categoría</option>
-            <option value="🍺 Cerveza local">🍺 Cerveza local</option>
-            <option value="💋 Give me the lovin'">💋 Give me the lovin'</option>
-            <option value="🕵️ Dato oculto">🕵️ Dato oculto</option>
-            <option value="🎭 Panoramas culturales">🎭 Panoramas culturales</option>
-            <option value="🍜 Comida asiática">🍜 Comida asiática</option>
-            <option value="🌄 Mirador">🌄 Mirador</option>
-          </select>
-
+  <!-- Modal Form -->
+  <div class="modal fade" id="submitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="submitForm" class="modal-content" action="https://docs.google.com/forms/d/e/1FAIpQLSeusWAsOC2Y4ND8jlAiy-Y1TmX-Qk2fqTL5sYFPMk7rM3cNWg/formResponse">
+        <div class="modal-header">
+          <h5 class="modal-title">Agregar lugar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-success">Enviar</button>
-      </div>
-    </form>
-  </div>
-</div>
+        <!-- Formulario -->
+        <div class="modal-body">
+          <div class="mb-2">
+            <label for="lugar" class="form-label">Lugar</label>
+            <input type="text" class="form-control" id="lugar" name="entry.914674059" required>
+          </div>
+          <div class="mb-2">
+            <label for="comuna" class="form-label">Comuna</label>
+            <input type="text" class="form-control" id="comuna" name="entry.1656433693" required>
+          </div>
+          <div class="mb-2">
+            <label for="categoria" class="form-label">Categoría</label>
+            <select class="form-select" id="categoria" name="entry.308177650" required>
+              <option selected disabled value="">Selecciona una categoría</option>
+              <option value="🍺 Cerveza local">🍺 Cerveza local</option>
+              <option value="💋 Give me the lovin'">💋 Give me the lovin'</option>
+              <option value="🕵️ Dato oculto">🕵️ Dato oculto</option>
+              <option value="🎭 Panoramas culturales">🎭 Panoramas culturales</option>
+              <option value="🍜 Comida asiática">🍜 Comida asiática</option>
+              <option value="🌄 Mirador">🌄 Mirador</option>
+            </select>
 
-<script src="config.js"></script>
+          </div>
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
-  <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body">¡Gracias por tu recomendación! 💚</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enviar</button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
+
+  <script src="config.js"></script>
+
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">¡Gracias por tu recomendación! 💚</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
