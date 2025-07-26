@@ -18,6 +18,9 @@
 
   <!-- Custom Styles -->
   <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwNsIode9P9Aa1ZPhkMtN9n1DGVwSsDZg&libraries=places"></script>
+
 </head>
 
 <body>
@@ -138,7 +141,7 @@
 </div>
 
 <!-- App Logic -->
-<script src="config.js"></script>
+<script type="module" src="config.js"></script>
 <script>
   document.querySelectorAll('.tag-btn').forEach(btn => {
     btn.addEventListener('click', () => {

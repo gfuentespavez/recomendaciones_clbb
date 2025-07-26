@@ -1,3 +1,5 @@
+import { buildPlaceDetailsHTML } from './places.js';
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
 
 const map = new mapboxgl.Map({
@@ -12,7 +14,7 @@ const map = new mapboxgl.Map({
 //Google Maps geocoding
 async function geocodeLugar(lugar, comuna) {
     const address = encodeURIComponent(`${lugar}, ${comuna}, Biobío, Chile`);
-    const apiKey = "AIzaSyCUHq2VQ7GkWvOKDMGvyJE2k_cZ4IWHsLU";
+    const apiKey = "AIzaSyCwNsIode9P9Aa1ZPhkMtN9n1DGVwSsDZg";
 
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
 
@@ -27,8 +29,6 @@ async function geocodeLugar(lugar, comuna) {
         return null;
     }
 }
-
-
 
 //URL de la planilla con las respuestas del formulario
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSEWU3mkFfjXHoGUgAAREbj9ErgeYqEfUSmajwtfuI5fRWeLAJc6c2-hjisrWFY-Sybv-Gtr1VbAWLo/pub?output=csv';
@@ -47,7 +47,7 @@ function loadData(category = null) {
             const parsed = Papa.parse(csvText, { header: true });
             const data = parsed.data.filter(r => r.Latitude && r.Longitude);
 
-            data.forEach(row => {
+            data.forEach(async row => {
                 const rowCategory = (row[categoryKey] || '').trim();
                 const selectedCategory = (category || '').trim();
 
@@ -57,15 +57,17 @@ function loadData(category = null) {
                 const lon = parseFloat((row.Longitude || '').trim());
                 if (isNaN(lat) || isNaN(lon)) return;
 
+                const placeDetailsHTML = await buildPlaceDetailsHTML(lat, lon);
+
                 const el = document.createElement('div');
                 el.innerHTML = `<img src="assets/svg/pin.svg" style="width: 40px; height: 40px; cursor: pointer;" />`;
 
                 const popupHTML = `
-  <h3>📍 ${row.Lugar}</h3>
-  <p>Comuna: ${row.Comuna}</p>
-  <p>Categoría: ${row.Categoría}</p>
-`;
-
+                    <h3>📍 ${row.Lugar}</h3>
+                    <p>Comuna: ${row.Comuna}</p>
+                    <p>Categoría: ${row.Categoría}</p>
+                    ${placeDetailsHTML}
+                `;
 
                 const marker = new mapboxgl.Marker({ element: el })
                     .setLngLat([lon, lat])
