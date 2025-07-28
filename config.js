@@ -1,14 +1,14 @@
-// ==================== SUPABASE INIT ====================
+import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN, GOOGLE_MAPS_API_KEY } from './secrets.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const supabaseUrl = 'https://bkoupsifunrusaixmxvn.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrb3Vwc2lmdW5ydXNhaXhteHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NzA2OTgsImV4cCI6MjA2OTI0NjY5OH0.lnsuc_zdJkJbztzXf3__Z-7CipGYE6OtkbAmJoLCC14';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+mapboxgl.accessToken = MAPBOX_TOKEN;
+
+
 
 let markers = [];
 
 // ==================== MAP INIT ====================
-mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
 
 const map = new mapboxgl.Map({
     container: 'map',
@@ -22,8 +22,7 @@ const map = new mapboxgl.Map({
 // ==================== GEOCODING ====================
 async function geocodeLugar(lugar, comuna) {
     const address = encodeURIComponent(`${lugar}, ${comuna}, Biobío, Chile`);
-    const apiKey = "AIzaSyCwNsIode9P9Aa1ZPhkMtN9n1DGVwSsDZg";
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GOOGLE_MAPS_API_KEY}`;
 
     const res = await fetch(url);
     const data = await res.json();
@@ -36,6 +35,7 @@ async function geocodeLugar(lugar, comuna) {
         return null;
     }
 }
+
 
 // ==================== DATA LOADER ====================
 async function loadData(category = null) {
@@ -75,7 +75,7 @@ async function loadData(category = null) {
         <h3>📍 ${lugar.lugar}</h3>
         <p>Comuna: ${lugar.comuna}</p>
         <p>Categoría: ${lugar.categoria}</p>
-        <p>Rating promedio: 🌟 ${promedio} / 5 (${ratings.length} votos)</p>
+        <p class="rating-promedio">Rating promedio: 🌟 ${promedio} / 5 (${ratings.length} votos)</p>
 
         <div class="rating">
           ${[1, 2, 3, 4, 5].map(v => `<span class="star" data-value="${v}">★</span>`).join('')}
@@ -93,19 +93,25 @@ async function loadData(category = null) {
     });
 }
 
-// ==================== STAR RATING HANDLER ====================
+// ==================== STAR RATING HANDLER MEJORADO ====================
 map.on('popupopen', () => {
     const popup = document.querySelector('.mapboxgl-popup-content .popup-content');
     if (!popup) return;
 
-    const stars = popup.querySelectorAll('.star');
+    let stars = popup.querySelectorAll('.star');
     const response = popup.querySelector('.rating-response');
     const lugarId = popup.dataset.id;
 
+    // Limpia event listeners previos para evitar duplicados
+    stars.forEach(star => star.replaceWith(star.cloneNode(true)));
+    stars = popup.querySelectorAll('.star');
+
     stars.forEach(star => {
+        star.style.cursor = 'pointer';
         star.onclick = async () => {
             const value = parseInt(star.dataset.value);
 
+            // Inserta rating en Supabase
             const { error } = await supabase.from('ratings').insert([
                 { lugar_id: lugarId, rating: value }
             ]);
@@ -117,7 +123,28 @@ map.on('popupopen', () => {
             }
 
             response.innerText = `Gracias por calificar con ${value} ⭐`;
-            loadData();
+
+            // Actualiza promedio en popup sin recargar todo
+            const { data: ratings, error: errRatings } = await supabase
+                .from('ratings')
+                .select('rating')
+                .eq('lugar_id', lugarId);
+
+            if (errRatings) {
+                console.error(errRatings);
+                return;
+            }
+
+            const suma = ratings.reduce((acc, r) => acc + r.rating, 0);
+            const promedio = ratings.length ? (suma / ratings.length).toFixed(1) : 'Sin votos';
+
+            const ratingPromedioElem = popup.querySelector('p.rating-promedio');
+            if (ratingPromedioElem) {
+                ratingPromedioElem.innerText = `Rating promedio: 🌟 ${promedio} / 5 (${ratings.length} votos)`;
+            }
+
+            // Deshabilita estrellas para evitar múltiples votos seguidos
+            stars.forEach(s => s.style.pointerEvents = 'none');
         };
     });
 });
@@ -194,7 +221,7 @@ document.getElementById('submitForm').addEventListener('submit', async function 
 document.querySelectorAll('.category-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');xw
+        btn.classList.add('active');
         const category = btn.dataset.category;
         loadData(category);
     });
@@ -209,6 +236,10 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
 loadData();
 
 setInterval(() => {
-    loadData();
-    console.log('Mapa actualizado automáticamente');
+    // Evita recargar mapa si popup abierto (opcional)
+    const popupVisible = document.querySelector('.mapboxgl-popup.open');
+    if (!popupVisible) {
+        loadData();
+        console.log('Mapa actualizado automáticamente');
+    }
 }, 30000);
