@@ -18,7 +18,7 @@ html, body {
     right: 0;
     width: 100%;
     z-index: 999;
-    pointer-events: auto; /* mantiene interacción */
+    pointer-events: auto;
 }
 
 /* ========== FAB Menu Button ========== */
@@ -44,35 +44,20 @@ html, body {
     justify-content: center;
 }
 
-body.offcanvas-open #main-fab-menu {
-    display: none;
-}
-
-/* ========== Offcanvas Fullscreen Menu ========== */
+/* ========== Offcanvas Fullscreen ========== */
 .offcanvas-fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none;
+    border-right: none;
     background-color: #111;
     color: white;
-    z-index: 2000;
-    transform: translateY(100%);
-    transition: transform 0.4s ease-in-out;
-    display: flex;
-    flex-direction: column;
     padding: 1.5rem;
     overflow-y: auto;
-    pointer-events: auto;
-}
-
-.offcanvas-fullscreen.show {
-    transform: translateY(0%);
+    z-index: 2000;
 }
 
 .offcanvas-header {
-    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,16 +65,8 @@ body.offcanvas-open #main-fab-menu {
     border-bottom: 1px solid #444;
 }
 
-.offcanvas-logo {
-    height: 40px;
-}
-
-.offcanvas-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    color: #fff;
-    cursor: pointer;
+.offcanvas-body {
+    padding-top: 1rem;
 }
 
 /* ========== Categoría Buttons ========== */
@@ -97,9 +74,7 @@ body.offcanvas-open #main-fab-menu {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding-top: 1rem;
     width: 100%;
-    pointer-events: auto;
 }
 
 #category-buttons .btn {
@@ -109,10 +84,7 @@ body.offcanvas-open #main-fab-menu {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     border-radius: 999px;
-    white-space: nowrap;
     transition: all 0.2s ease;
-    flex-grow: 0;
-    flex-shrink: 0;
     cursor: pointer;
 }
 
@@ -128,49 +100,23 @@ body.offcanvas-open #main-fab-menu {
     border: 2px solid #333;
 }
 
-/* ========== Offcanvas Backdrop ========== */
-.offcanvas-backdrop {
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    backdrop-filter: blur(6px);
-    z-index: 1999 !important;
-}
-
 /* ========== Modal Fullscreen ========== */
-.modal-backdrop.show {
-    background-color: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(6px);
-    z-index: 1050;
-}
-
-.modal.fullscreen {
-    display: block;
-    opacity: 1;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.modal.fullscreen .modal-dialog {
     width: 100vw;
     height: 100vh;
+    margin: 0;
     max-width: none;
+}
+
+.modal.fullscreen .modal-content {
+    height: 100%;
+    border-radius: 0;
     background-color: #111;
     color: #fff;
-    border-radius: 0;
-    z-index: 1055;
-    overflow-y: auto;
-    padding: 2rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    transition: opacity 0.3s ease;
-}
-
-.modal.fullscreen.fade:not(.show) {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.modal-content {
-    background: transparent;
     border: none;
     box-shadow: none;
+    overflow-y: auto;
+    padding: 2rem;
 }
 
 .modal-header {
@@ -221,17 +167,11 @@ body.offcanvas-open #main-fab-menu {
     background-color: #e6b800;
 }
 
-.modal.fullscreen:not(.show),
-.modal-backdrop:not(.show) {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-}
-
+/* ========== Toast ========== */
 #successToast {
-    background-color: #333 !important; /* fondo oscuro */
-    color: #ffcc05 !important;         /* texto amarillo */
-    border: none !important;            /* quitar borde */
+    background-color: #333 !important;
+    color: #ffcc05 !important;
+    border: none !important;
 }
 
 #successToast .toast-body {
@@ -240,12 +180,11 @@ body.offcanvas-open #main-fab-menu {
 
 #successToast .btn-close {
     filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(90deg) brightness(90%) contrast(90%);
-    /* o usa color blanco para cerrar */
 }
 
-/*Popup  */
+/* ========== Popup Mapbox ========== */
 .mapboxgl-popup-content {
-    background-color: #333 !important; /* fondo oscuro */
+    background-color: #333 !important;
     color: white !important;
     border-radius: 12px;
     padding: 12px;
@@ -257,27 +196,36 @@ body.offcanvas-open #main-fab-menu {
     margin: 0 0 6px;
     font-size: 1rem;
     font-weight: bold;
-    color: white;
 }
 
 .mapboxgl-popup-content p {
     margin: 4px 0 8px;
     font-size: 0.95rem;
-    color: white;
 }
 
 .mapboxgl-popup-tip {
-    border-top-color: #111 !important; /* color de la punta */
-}
-.rating-block {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    border-top-color: #111 !important;
 }
 
-.rating-block .stars {
-    font-size: 1.2rem;
-    color: #ffcc05;
+/* ========== Rating Stars ========== */
+.rating {
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
 }
 
+.rating .star {
+    color: #ccc;
+    display: inline-block;
+    transition: color 0.2s;
+}
 
+.rating .star:hover,
+.rating .star:hover ~ .star {
+    color: gold;
+}
+
+.rating .star.selected,
+.rating .star.selected ~ .star {
+    color: gold;
+}
