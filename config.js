@@ -1,5 +1,13 @@
-import { buildPlaceDetailsHTML } from './places.js';
+// ==================== SUPABASE INIT ====================
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+const supabaseUrl = 'https://bkoupsifunrusaixmxvn.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrb3Vwc2lmdW5ydXNhaXhteHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NzA2OTgsImV4cCI6MjA2OTI0NjY5OH0.lnsuc_zdJkJbztzXf3__Z-7CipGYE6OtkbAmJoLCC14';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+let markers = [];
+
+// ==================== MAP INIT ====================
 mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
 
 const map = new mapboxgl.Map({
@@ -11,11 +19,10 @@ const map = new mapboxgl.Map({
     bearing: -109.48,
 });
 
-//Google Maps geocoding
+// ==================== GEOCODING ====================
 async function geocodeLugar(lugar, comuna) {
     const address = encodeURIComponent(`${lugar}, ${comuna}, Biobío, Chile`);
     const apiKey = "AIzaSyCwNsIode9P9Aa1ZPhkMtN9n1DGVwSsDZg";
-
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
 
     const res = await fetch(url);
@@ -30,152 +37,178 @@ async function geocodeLugar(lugar, comuna) {
     }
 }
 
-//URL de la planilla con las respuestas del formulario
-const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSEWU3mkFfjXHoGUgAAREbj9ErgeYqEfUSmajwtfuI5fRWeLAJc6c2-hjisrWFY-Sybv-Gtr1VbAWLo/pub?output=csv';
-
-let markers = [];
-
-function loadData(category = null) {
+// ==================== DATA LOADER ====================
+async function loadData(category = null) {
     markers.forEach(m => m.remove());
     markers = [];
 
-    const categoryKey = 'Categoría';
+    let query = supabase
+        .from('lugares')
+        .select(`
+      id, lugar, comuna, categoria, lat, lon,
+      ratings ( rating )
+    `);
 
-    fetch(csvUrl)
-        .then(response => response.text())
-        .then(csvText => {
-            const parsed = Papa.parse(csvText, { header: true });
-            const data = parsed.data.filter(r => r.Latitude && r.Longitude);
+    if (category && category !== 'all') {
+        query = query.eq('categoria', category);
+    }
 
-            data.forEach(async row => {
-                const rowCategory = (row[categoryKey] || '').trim();
-                const selectedCategory = (category || '').trim();
+    const { data: lugares, error } = await query;
 
-                if (selectedCategory && selectedCategory !== 'all' && rowCategory !== selectedCategory) return;
+    if (error) {
+        console.error('Error cargando lugares:', error);
+        return;
+    }
 
-                const lat = parseFloat((row.Latitude || '').trim());
-                const lon = parseFloat((row.Longitude || '').trim());
-                if (isNaN(lat) || isNaN(lon)) return;
+    console.log("Lugares desde Supabase:", lugares);
 
-                const placeDetailsHTML = await buildPlaceDetailsHTML(lat, lon);
+    lugares.forEach(lugar => {
+        const ratings = lugar.ratings || [];
+        const suma = ratings.reduce((acc, r) => acc + r.rating, 0);
+        const promedio = ratings.length ? (suma / ratings.length).toFixed(1) : 'Sin votos';
 
-                const el = document.createElement('div');
-                el.innerHTML = `<img src="assets/svg/pin.svg" style="width: 40px; height: 40px; cursor: pointer;" />`;
+        const el = document.createElement('div');
+        el.innerHTML = `<img src="assets/svg/pin.svg" style="width:40px; height:40px; cursor:pointer;" />`;
 
-                const popupHTML = `
-                    <h3>📍 ${row.Lugar}</h3>
-                    <p>Comuna: ${row.Comuna}</p>
-                    <p>Categoría: ${row.Categoría}</p>
-                    ${placeDetailsHTML}
-                `;
+        const popupHTML = `
+      <div class="popup-content" data-lugar="${lugar.lugar}" data-id="${lugar.id}">
+        <h3>📍 ${lugar.lugar}</h3>
+        <p>Comuna: ${lugar.comuna}</p>
+        <p>Categoría: ${lugar.categoria}</p>
+        <p>Rating promedio: 🌟 ${promedio} / 5 (${ratings.length} votos)</p>
 
-                const marker = new mapboxgl.Marker({ element: el })
-                    .setLngLat([lon, lat])
-                    .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML))
-                    .addTo(map);
+        <div class="rating">
+          ${[1, 2, 3, 4, 5].map(v => `<span class="star" data-value="${v}">★</span>`).join('')}
+        </div>
+        <p class="rating-response text-muted small"></p>
+      </div>
+    `;
 
-                markers.push(marker);
-            });
-        });
+        const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat([lugar.lon, lugar.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML))
+            .addTo(map);
+
+        markers.push(marker);
+    });
 }
 
-document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const category = btn.getAttribute('data-category');
-        loadData(category);
+// ==================== STAR RATING HANDLER ====================
+map.on('popupopen', () => {
+    const popup = document.querySelector('.mapboxgl-popup-content .popup-content');
+    if (!popup) return;
+
+    const stars = popup.querySelectorAll('.star');
+    const response = popup.querySelector('.rating-response');
+    const lugarId = popup.dataset.id;
+
+    stars.forEach(star => {
+        star.onclick = async () => {
+            const value = parseInt(star.dataset.value);
+
+            const { error } = await supabase.from('ratings').insert([
+                { lugar_id: lugarId, rating: value }
+            ]);
+
+            if (error) {
+                response.innerText = 'Error guardando rating, intenta luego.';
+                console.error(error);
+                return;
+            }
+
+            response.innerText = `Gracias por calificar con ${value} ⭐`;
+            loadData();
+        };
     });
 });
 
+// ==================== MODAL + OFFCANVAS SYNC ====================
+document.getElementById('openModalBtn').addEventListener('click', () => {
+    // Cierra el offcanvas si está abierto
+    document.querySelectorAll('.offcanvas').forEach(el => {
+        const instance = bootstrap.Offcanvas.getInstance(el);
+        if (instance) instance.hide();
+    });
 
-loadData()
+    // Abre el modal manualmente
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('submitModal'));
+        modal.show();
+    }, 300);
+});
 
-// Refrescar el mapa cada 30 segundos (60000 ms)
-setInterval(() => {
-    loadData();
-    console.log('Mapa actualizado automáticamente');
-}, 30000);
-
-//Listener
+// ==================== FORM HANDLER ====================
 document.getElementById('submitForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-
     const form = e.target;
 
-    const lugar = form.querySelector('[name="entry.914674059"]').value;
-    const comuna = form.querySelector('[name="entry.1168797881"]').value;
+    const lugar = form.lugar.value.trim();
+    const comuna = form.comuna.value.trim();
+    const categoria = form.categoria.value.trim();
+
+    if (!lugar || !comuna || !categoria) {
+        alert('Por favor completa todos los campos.');
+        return;
+    }
 
     const coords = await geocodeLugar(lugar, comuna);
-
     if (!coords) {
         alert('No pudimos geolocalizar el lugar. Intenta ser más específico.');
         return;
     }
 
-    // ✅ Actualizar inputs ocultos directamente en el DOM
-    document.getElementById('latitude').value = coords.lat;
-    document.getElementById('longitude').value = coords.lon;
+    const { data, error } = await supabase.from('lugares').insert([{
+        lugar,
+        comuna,
+        categoria,
+        lat: coords.lat,
+        lon: coords.lon,
+    }]);
 
-    // ✅ Crear el FormData DESPUÉS de actualizar los inputs
-    const formData = new FormData(form);
-    const query = new URLSearchParams(formData).toString();
+    if (error) {
+        alert('Error guardando lugar. Intenta de nuevo.');
+        console.error(error);
+        return;
+    }
 
-    fetch(form.action, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: query
-    }).then(() => {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('submitModal'));
-        modal.hide();
-        form.reset();
+    // Muestra el toast
+    const toastEl = document.getElementById('successToast');
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
 
-        const toast = new bootstrap.Toast(document.getElementById('successToast'));
-        toast.show();
+    // Cierra el modal
+    const modalEl = document.getElementById('submitModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
 
-        loadData();
-    });
-})
-const openMenuBtn = document.getElementById("openMenuBtn");
-const closeMenuBtn = document.getElementById("closeMenuBtn");
-const menuOffcanvas = document.getElementById("menuOffcanvas");
-const mainFabMenu = document.getElementById("main-fab-menu");
+    // Limpia backdrop si queda pegado
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = 'auto';
 
-// Abrir menú
-openMenuBtn.addEventListener("click", () => {
-    menuOffcanvas.classList.add("show");
-    menuOffcanvas.style.display = "flex";
-    mainFabMenu.style.display = "none";
+    form.reset();
+    loadData();
 });
 
-// Cerrar menú
-closeMenuBtn.addEventListener("click", () => {
-    menuOffcanvas.classList.remove("show");
-    // Esperar la transición antes de ocultar display
-    setTimeout(() => {
-        menuOffcanvas.style.display = "none";
-    }, 400);
-    mainFabMenu.style.display = "block";
-});
-
-// Filtrar por categoría y cerrar menú
+// ==================== CATEGORY FILTERS ====================
 document.querySelectorAll('.category-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const category = btn.getAttribute('data-category');
-        loadData(category); // función que carga/filtra el mapa
-
-        menuOffcanvas.classList.remove("show");
-        setTimeout(() => {
-            menuOffcanvas.style.display = "none";
-        }, 400);
-        mainFabMenu.style.display = "block";
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');xw
+        const category = btn.dataset.category;
+        loadData(category);
     });
 });
 
-// Al abrir modal desde menú: cerrar menú y mostrar FAB
-document.getElementById("openModalBtn").addEventListener("click", () => {
-    menuOffcanvas.classList.remove("show");
-    setTimeout(() => {
-        menuOffcanvas.style.display = "none";
-    }, 400);
-    mainFabMenu.style.display = "block";
+document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+    loadData(null);
 });
+
+// ==================== INIT ====================
+loadData();
+
+setInterval(() => {
+    loadData();
+    console.log('Mapa actualizado automáticamente');
+}, 30000);
