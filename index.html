@@ -17,69 +17,89 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="assets/styles/styles.css" />
 
+  <!-- Google Maps Places -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwNsIode9P9Aa1ZPhkMtN9n1DGVwSsDZg&libraries=places"></script>
 
+  <style>
+    /* Fullscreen Offcanvas */
+    .offcanvas-fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none;
+      border-right: none;
+    }
+
+    /* Fullscreen Modal */
+    .modal.fullscreen .modal-dialog {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      max-width: none;
+    }
+
+    .modal.fullscreen .modal-content {
+      height: 100%;
+      border-radius: 0;
+    }
+  </style>
 </head>
 
 <body>
-<!-- Hidden Navbar (for accessibility or future use) -->
-<nav class="navbar navbar-light bg-light px-3">
-  <a class="navbar-brand d-flex align-items-center" href="#">
-    <img src="logo1.png" alt="Logo" width="103" height="40" class="me-2" />
-    <span>Mapa CityLab</span>
-  </a>
-</nav>
+
 
 <!-- Map Container -->
-
 <div id="map"></div>
 
-<!-- Botón FAB para abrir el menú -->
+<!-- FAB para abrir el menú -->
 <div id="main-fab-menu" style="position: fixed; top: 1rem; left: 1rem; z-index: 2100;">
-  <button class="btn btn-light shadow rounded-circle p-2" type="button" id="openMenuBtn" title="Menú">
+  <button class="btn btn-light shadow rounded-circle p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOffcanvas" title="Menú">
     ☰
   </button>
 </div>
 
-<!-- Offcanvas personalizado -->
-<div class="offcanvas-fullscreen" id="menuOffcanvas">
+<!-- Offcanvas fullscreen -->
+<div class="offcanvas offcanvas-start offcanvas-fullscreen" tabindex="-1" id="menuOffcanvas" aria-labelledby="menuOffcanvasLabel">
   <div class="offcanvas-header">
-    <img src="assets/png/clbb.png" alt="Logo" style="height: 40px;" />
-    <button type="button" class="btn btn-light" id="closeMenuBtn">✕</button>
+    <h5 class="offcanvas-title" id="menuOffcanvasLabel">
+      <img src="assets/png/clbb.png" alt="Logo" style="height: 40px;" />
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
   </div>
   <div class="offcanvas-body d-flex flex-column gap-3">
     <button class="btn btn-warning w-100" id="openModalBtn" data-bs-toggle="modal" data-bs-target="#submitModal">Agregar lugar</button>
     <div id="category-buttons" class="d-flex flex-wrap gap-2">
-      <button class="btn tag-btn category-btn" data-category="Cafés">Cafés</button>
-      <button class="btn tag-btn category-btn" data-category="Panoramas">Panoramas</button>
-      <button class="btn tag-btn category-btn" data-category="Cultura">Cultura</button>
       <button class="btn tag-btn category-btn" data-category="Comida">Comida</button>
-      <button class="btn tag-btn category-btn" data-category="Barrios">Barrios</button>
+      <button class="btn tag-btn category-btn" data-category="Bar">Bar</button>
+      <button class="btn tag-btn category-btn" data-category="Cafeterías">Cafetería</button>
+      <button class="btn tag-btn category-btn" data-category="Cultura">Cultura</button>
+      <button class="btn tag-btn category-btn" data-category="Tiendas">Tienda local</button>
+      <button class="btn tag-btn category-btn" data-category="Panoramas">Panoramas</button>
+      <button class="btn tag-btn category-btn" data-category="Música">Música en vivo</button>
+      <button class="btn tag-btn category-btn" data-category="Mirador">Mirador</button>
+      <button class="btn tag-btn category-btn" data-category="Datos">Dato oculto</button>
     </div>
+    <button id="resetFiltersBtn" class="btn btn-secondary w-100 mb-3">Resetear filtros</button>
   </div>
 </div>
 
-<!-- Modal de envío fullscreen -->
-<div class="modal fade fullscreen" id="submitModal" tabindex="-1" aria-hidden="true" aria-labelledby="submitModalLabel" aria-modal="true" role="dialog">
+<!-- Modal fullscreen -->
+<div class="modal fade fullscreen" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-    <form id="submitForm" class="modal-content" action="https://docs.google.com/forms/d/e/1FAIpQLSfpmhVSb3k8R9HMVyeRJDueyZvABnNEMt2xTC65t7HJshuUng/formResponse" method="POST" target="hidden_iframe" novalidate>
-
+    <form id="submitForm" class="modal-content" novalidate>
       <div class="modal-header">
         <h5 class="modal-title" id="submitModalLabel">Cuéntanos, ¿cuál es tu lugar favorito en Conce?</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-
       <div class="modal-body">
         <div class="mb-3">
           <label for="lugar" class="form-label">Recomiendo...</label>
-          <input type="text" class="form-control" id="lugar" name="entry.914674059" required placeholder="Escribe el nombre del lugar">
+          <input type="text" class="form-control" id="lugar" name="lugar" required placeholder="Escribe el nombre del lugar">
         </div>
-
         <div class="mb-3">
           <label for="comuna" class="form-label">Comuna</label>
-          <select class="form-select" id="comuna" name="entry.1168797881" required>
+          <select class="form-select" id="comuna" name="comuna" required>
             <option value="" disabled selected>Selecciona una comuna</option>
             <option value="Concepción">Concepción</option>
             <option value="Talcahuano">Talcahuano</option>
@@ -93,43 +113,31 @@
             <option value="Lota">Lota</option>
           </select>
         </div>
-
         <div class="mb-3">
           <label for="categoria" class="form-label">Categoría</label>
-          <select class="form-select" id="categoria" name="entry.308177650" required>
+          <select class="form-select" id="categoria" name="categoria" required>
             <option value="" disabled selected>Selecciona una categoría</option>
-            <option value="🍺 Cerveza local">🍺 Cerveza local</option>
-            <option value="💋 Give me the lovin'">💋 Give me the lovin'</option>
-            <option value="🕵️ Dato oculto">🕵️ Dato oculto</option>
-            <option value="🎭 Panoramas culturales">🎭 Panoramas culturales</option>
-            <option value="🍜 Comida asiática">🍜 Comida asiática</option>
-            <option value="🌄 Mirador">🌄 Mirador</option>
+            <option value="Comida">Comida</option>
+            <option value="Bar">Bar</option>
+            <option value="Cafetería">Cafetería</option>
+            <option value="Cultura">Cultura</option>
+            <option value="Tiendas">Tienda local</option>
+            <option value="Panoramas">Panoramas</option>
+            <option value="Música">Música en vivo</option>
+            <option value="Mirador">Mirador</option>
+            <option value="Dato">Dato oculto</option>
           </select>
         </div>
-
-        <!-- Campos ocultos para latitud y longitud -->
-        <input type="hidden" id="latitude" name="entry.980756282">
-        <input type="hidden" id="longitude" name="entry.277948711">
+        <input type="hidden" id="latitude" name="lat">
+        <input type="hidden" id="longitude" name="lon">
       </div>
-
       <div class="modal-footer">
         <button type="submit" class="btn btn-success w-100">Enviar</button>
       </div>
     </form>
-
-    <!-- Mensaje visual -->
-    <div id="statusMessage" class="text-center mt-2" style="display:none;"></div>
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
   </div>
 </div>
-
-
-    <!-- Mensaje visual -->
-    <div id="statusMessage" class="text-center mt-2" style="display:none;"></div>
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
-  </div>
-</div>
-
+xw
 <!-- Toast Notification -->
 <div class="toast-container position-fixed end-0 p-3" style="z-index: 9999">
   <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -140,18 +148,7 @@
   </div>
 </div>
 
-<!-- App Logic -->
+<!--scripts-->
 <script type="module" src="config.js"></script>
-<script>
-  document.querySelectorAll('.tag-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const category = btn.dataset.category;
-      // TODO: trigger map filtering logic here
-      console.log("Filter by:", category);
-    });
-  });
-</script>
 </body>
 </html>
