@@ -1,8 +1,11 @@
-import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN, GOOGLE_MAPS_API_KEY } from './secrets.js';
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-mapboxgl.accessToken = MAPBOX_TOKEN;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+mapboxgl.accessToken = mapboxToken;
 
 let markers = [];
 
@@ -20,7 +23,9 @@ const map = new mapboxgl.Map({
 // ==================== GEOCODING ====================
 async function geocodeLugar(lugar, comuna) {
     const address = encodeURIComponent(`${lugar}, ${comuna}, Biobío, Chile`);
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GOOGLE_MAPS_API_KEY}`;
+    const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
+
 
     const res = await fetch(url);
     const data = await res.json();
