@@ -1,3 +1,5 @@
 # 🔐 Don't commit sensitive keys
 secrets.js
 .env
+recomendaciones-vite/node_modules/
+recomendaciones-vite/dist/
