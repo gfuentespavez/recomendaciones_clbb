@@ -1,7 +1,7 @@
-import { getFormattedAddress } from './places.js';
-import { callFindInstagram } from './instagram.js';
+import { getFormattedAddress } from './js/places.js';
+import { callFindInstagram } from './js/instagram.js';
 
-import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN, GOOGLE_MAPS_API_KEY } from './secrets.js';
+import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN, GOOGLE_MAPS_API_KEY } from './js/secrets.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
