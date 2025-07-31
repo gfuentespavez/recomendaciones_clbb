@@ -207,25 +207,217 @@ html, body {
     border-top-color: #111 !important;
 }
 
-/* ========== Rating Stars ========== */
 .rating {
+    display: flex;
+    gap: 5px;
     font-size: 1.5rem;
     cursor: pointer;
     user-select: none;
 }
-
-.rating .star {
+.star {
+    font-size: 1.2rem;
     color: #ccc;
-    display: inline-block;
-    transition: color 0.2s;
+    transition: color 0.2s ease;
+}
+@keyframes pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
 }
 
-.rating .star:hover,
-.rating .star:hover ~ .star {
+.star.highlight {
+    color: gold;
+    animation: pop 0.3s ease;
+}
+
+/* popup - modal */
+.fullscreen .modal-dialog {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    max-width: none;
+}
+/* ========== Header ========== */
+#modal-titulo {
+    font-family: "DM Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-size: 3rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 3rem;
+    padding: 1.3rem;
+}
+
+.info-modal-header {
+    background-color: #B6F500;
+    color: black;
+    border-radius: 2rem;
+}
+
+.info-modal-content {
+    height: 100%;
+    border-radius: 0;
+    background-color: #000;
+    color: #fff;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    padding: 2rem;
+    gap: 2rem;
+    font-family: "DM Sans", sans-serif;
+}
+
+/* ========== Body Grid ========== */
+
+/* Row Container */
+.info-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Shared Box Style */
+.info-box {
+    flex: 1;
+    padding: 2rem 1rem;
+    min-height: 150px;
+    color: #fff;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+/* Specific Widths */
+.categoria-box {
+    flex: 1;
+    background-color: #0E49B5;
+}
+
+.direccion-box {
+    flex: 2;
+    background-color: #ffcc05;
+}
+
+.rating-stars-container {
+    flex: 1;
+    flex-direction: column;
+    background-color: #00FFAB;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.rating-text {
+    flex: 2;
+    font-weight: bold;
+    font-size: 1.1rem;
+    background-color: #FF6363;
+}
+
+.rating-promedio {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+}
+r
+.rating-votos {
+    font-size: 1rem;
+    color: white;
+    margin-left: 0.5rem;
+}
+
+/* Star Styles */
+.rating-stars {
+    display: flex;
+    gap: 1rem;
+}
+
+.star {
+    font-size: 2rem;
+    color: #000;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s ease;
+}
+.star.hovered,
+.star.selected {
     color: gold;
 }
 
-.rating .star.selected,
-.rating .star.selected ~ .star {
-    color: gold;
+.star.highlight {
+    color: red;
+}
+
+/* Span Styling */
+#modal-categoria,
+#modal-direccion {
+    color: white;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+/* Scanner  */
+
+.scanner-section {
+    margin-top: 2rem;
+}
+
+/* Title Styling */
+.scanner-title {
+    font-family: "DM Sans", sans-serif;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.form-floating {
+    margin-top: 1rem;
+}
+
+/* Textarea Styling */
+.form-control {
+    background-color: #ecf0f1; /* suave gris claro */
+    border: none;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    font-size: 1rem;
+    color: #2c3e50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    resize: none;
+    min-height: 120px;
+}
+
+/* Label Styling */
+.form-floating label {
+    color: #7f8c8d;
+    font-weight: 500;
+    padding-left: 1rem;
+}
+
+/* Focus State */
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(47, 164, 255, 0.25);
+    border: 1px solid #2FA4FF;
+}
+
+/* ========== Footer ========== */
+.info-modal-footer {
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+    justify-content: center;;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .info-modal-body {
+        grid-template-columns: 1fr;
+    }
 }
