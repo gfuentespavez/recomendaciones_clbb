@@ -65,7 +65,7 @@ export async function getPlaceDetails(placeId) {
     return new Promise((resolve) => {
         service.getDetails({
             placeId,
-            fields: ['name', 'rating', 'user_ratings_total', 'types']
+            fields: ['name', 'rating', 'user_ratings_total', 'types', 'formatted_address'] // ✅ corregido
         }, (place, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 resolve(place);
@@ -137,4 +137,35 @@ export async function buildPlaceDetailsHTML(lat, lon, lugar, comuna) {
         <p>⭐ <strong>Rating:</strong> ${rating} (${total} reseñas)</p>
         ${readableTypes ? `<p>🍽️ Tipo: ${readableTypes}</p>` : ''}
     `;
+}
+
+/**
+ * Obtiene la dirección formateada desde Places API.
+ * @param {number} lat
+ * @param {number} lon
+ * @param {string} lugar
+ * @param {string} comuna
+ * @returns {Promise<string|null>}
+ */
+export async function getFormattedAddress(lat, lon, lugar, comuna) {
+    let placeId = await getPlaceIdByText(lugar, comuna) || await getPlaceIdByCoords(lat, lon);
+    if (!placeId) {
+        console.warn("[Places] No se pudo obtener placeId para:", lugar, comuna);
+        return null;
+    }
+
+    const service = new google.maps.places.PlacesService(document.createElement('div'));
+    return new Promise((resolve) => {
+        service.getDetails({
+            placeId,
+            fields: ['formatted_address']
+        }, (place, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && place?.formatted_address) {
+                resolve(place.formatted_address);
+            } else {
+                console.warn("[Places] No se pudo obtener dirección para:", placeId);
+                resolve(null);
+            }
+        });
+    });
 }
