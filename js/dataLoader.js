@@ -1,24 +1,27 @@
-import { supabase } from './supabaseClient.js';
 import { clearMarkers, addLugarMarker } from './markerManager.js';
+import { supabase } from './supabaseClient.js';
 import { map } from './map.js';
 
-export async function loadData(category = null) {
+export async function loadData(category = null, comuna = null) {
     clearMarkers();
 
-    let query = supabase
-        .from('lugares')
-        .select(`id, lugar, comuna, categoria, lat, lon, formatted_address, ratings ( rating )`);
+    let query = supabase.from('lugares').select('*');
 
-    if (category && category !== 'all') {
+    // Aplicar filtros según correspondan
+    if (category && comuna) {
+        query = query.eq('categoria', category).eq('comuna', comuna);
+    } else if (category) {
         query = query.eq('categoria', category);
+    } else if (comuna) {
+        query = query.eq('comuna', comuna);
     }
 
-    const { data: lugares, error } = await query;
+    const { data, error } = await query;
 
     if (error) {
-        console.error('Error cargando lugares:', error);
+        console.error('Error al cargar lugares:', error);
         return;
     }
 
-    lugares.forEach(lugar => addLugarMarker(map, lugar));
+    data.forEach(lugar => addLugarMarker(map, lugar));
 }
