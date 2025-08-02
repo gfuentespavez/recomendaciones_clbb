@@ -30,12 +30,12 @@
 <!-- Map Container -->
 <div id="map"></div>
 
-<!-- FAB para abrir el menú -->
+<!-- FAB (Botón Menú) -->
 <div id="main-fab-menu" style="position: fixed; top: 1rem; left: 1rem; z-index: 2100;">
   <button class="btn btn-light shadow d-flex align-items-center gap-2 rounded-pill px-3 py-2 menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOffcanvas" title="Menú">
     <span class="menu-icon">
-  <img src="assets/svg/menu.svg" alt="Menú" style="width: 1rem; height: 1rem;" />
-</span>
+      <img src="assets/svg/menu.svg" alt="Menú" style="width: 1rem; height: 1rem;" />
+    </span>
     <span class="fw-semibold">Menú</span>
   </button>
 </div>
@@ -205,6 +205,37 @@
       <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
   </div>
+</div>
+
+<!-- Botón lupa fijo abajo a la derecha -->
+<button
+        id="searchToggleButton"
+        class="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center"
+        style="
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    background-color: #000;
+    border: none;
+    z-index: 2100;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    cursor: pointer;
+  "
+        type="button"
+        aria-label="Abrir búsqueda"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" class="bi bi-search" viewBox="0 0 16 16">
+    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+  </svg>
+</button>
+
+<!-- Contenedor del textarea fullscreen oculto inicialmente -->
+<div id="searchOverlay">
+  <textarea
+          id="searchTextarea"
+          placeholder="Escribe tu búsqueda aquí..."></textarea>
 </div>
 
 <!-- Main Script -->

@@ -20,7 +20,19 @@ html, body {
     z-index: 999;
     pointer-events: auto;
 }
-
+#search-overlay {
+    position: fixed;
+    top: 80px; /* debajo de la navbar si hay */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    max-width: 90%;
+    width: 500px;
+}
 /* ========== FAB Menu Button ========== */
 .menu-icon {
     display: inline-block;
@@ -42,13 +54,16 @@ html, body {
 }
 
 #main-fab-menu button {
+
     border-radius: 12px;
     padding: 0.5rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #fff;
-    color: #000;
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    color: #222;
+    font-weight: bold;
     border: none;
     cursor: pointer;
     font-size: 1rem;
@@ -70,6 +85,20 @@ html, body {
     padding: 1.5rem;
     overflow-y: auto;
     z-index: 2000;
+    pointer-events: none;
+    opacity: 0;
+
+    transform: translateX(100%);
+    transition:
+            transform 0.5s cubic-bezier(0.3, 0.8, 0.3, 1),
+            opacity 0.4s ease-out;
+    will-change: transform;
+}
+
+.offcanvas-fullscreen.show {
+    transform: translateX(0%);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .offcanvas-header {
@@ -460,6 +489,53 @@ r
     justify-content: center;;
 }
 
+/* botón búsqueda*/
+#searchOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 2050;
+}
+#searchOverlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#searchTextarea {
+    width: 100%;
+    max-width: 600px;
+    height: 120px;
+    font-size: 1.2rem;
+    resize: none;
+    background: rgba(255,255,255,0);
+    box-shadow: 0 0 8px rgba(0,0,0,0);
+    border-color: rgba(255,255,255,0);
+    outline: none;
+}
+
+.btn-search {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #000;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2100;
+    cursor: pointer;
+}
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
     .info-modal-body {
