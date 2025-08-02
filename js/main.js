@@ -2,28 +2,22 @@ import { map } from './map.js';
 import { loadData } from './dataLoader.js';
 import { setupForm } from './formHandler.js';
 import { setupFilters } from './filters.js';
+import { initSearch } from './search.js';
 
-setupForm();
-setupFilters();
-loadData();
-
-// === SVG loader ===
-async function loadSVGInline(path, targetSelector) {
-    try {
-        const res = await fetch(path);
-        const svgText = await res.text();
-        const container = document.querySelector(targetSelector);
-        if (container) container.innerHTML = svgText;
-    } catch (error) {
-        console.error("Error loading SVG:", error);
-    }
-}
-
+// 🚀 Inicialización principal
 document.addEventListener('DOMContentLoaded', () => {
-    // Cargar SVG del ícono del menú
+    console.log('DOM listo. Inicializando aplicación...');
+
+    // Inicializar módulos
+    setupForm();
+    setupFilters();
+    initSearch();
+    loadData();
+
+    // Cargar ícono SVG del menú
     loadSVGInline('assets/svg/menu-1.svg', '.menu-icon');
 
-    // Mostrar y ocultar botón FAB según offcanvas
+    // FAB y offcanvas
     const fabMenu = document.getElementById('main-fab-menu');
     const offcanvasEl = document.getElementById('menuOffcanvas');
 
@@ -38,38 +32,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Mostrar modal si no hay offcanvas abierto
-    document.getElementById('openModalBtn')?.addEventListener('click', () => {
-        const offcanvasElements = document.querySelectorAll('.offcanvas');
-        const offcanvasInstances = Array.from(offcanvasElements)
-            .map(el => bootstrap.Offcanvas.getInstance(el))
-            .filter(i => i);
+    const openModalBtn = document.getElementById('openModalBtn');
+    const submitModalEl = document.getElementById('submitModal');
 
-        if (offcanvasInstances.length === 0) {
-            const modal = new bootstrap.Modal(document.getElementById('submitModal'));
-            modal.show();
-            return;
-        }
+    if (openModalBtn && submitModalEl) {
+        openModalBtn.addEventListener('click', () => {
+            const offcanvasElements = document.querySelectorAll('.offcanvas');
+            const offcanvasInstances = Array.from(offcanvasElements)
+                .map(el => bootstrap.Offcanvas.getInstance(el))
+                .filter(i => i);
 
-        offcanvasInstances.forEach(instance => instance.hide());
+            if (offcanvasInstances.length === 0) {
+                new bootstrap.Modal(submitModalEl).show();
+                return;
+            }
 
-        let closedCount = 0;
-        offcanvasElements.forEach(el => {
-            el.addEventListener(
-                'hidden.bs.offcanvas',
-                () => {
-                    closedCount++;
-                    if (closedCount === offcanvasInstances.length) {
-                        const modal = new bootstrap.Modal(document.getElementById('submitModal'));
-                        modal.show();
-                    }
-                },
-                { once: true }
-            );
+            let closedCount = 0;
+            offcanvasInstances.forEach(instance => instance.hide());
+
+            offcanvasElements.forEach(el => {
+                el.addEventListener(
+                    'hidden.bs.offcanvas',
+                    () => {
+                        closedCount++;
+                        if (closedCount === offcanvasInstances.length) {
+                            new bootstrap.Modal(submitModalEl).show();
+                        }
+                    },
+                    { once: true }
+                );
+            });
         });
-    });
+    }
 });
 
-// Auto-refresh del mapa cada 10 segundos (si no hay popup abierto)
+// 🔄 Auto-refresh del mapa cada 10 segundos (si no hay popup abierto)
 setInterval(() => {
     const popupVisible = document.querySelector('.mapboxgl-popup.open');
     if (!popupVisible) {
@@ -77,3 +74,15 @@ setInterval(() => {
         console.log('Mapa actualizado automáticamente');
     }
 }, 10000);
+
+// 📦 Cargar SVG inline
+async function loadSVGInline(path, targetSelector) {
+    try {
+        const res = await fetch(path);
+        const svgText = await res.text();
+        const container = document.querySelector(targetSelector);
+        if (container) container.innerHTML = svgText;
+    } catch (error) {
+        console.error("Error cargando SVG:", error);
+    }
+}
