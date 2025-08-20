@@ -80,7 +80,9 @@ export async function populateModal(lugar) {
         stars.push(star);
     }
 
-    // Lógica de Instagram/Otakin
+    // Lógica de Instagram
+    /*
+
     const instaData = await callFindInstagram(
         lugar.lugar,
         lugar.formatted_address ?? lugar.comuna,
@@ -98,4 +100,5 @@ export async function populateModal(lugar) {
 
         document.getElementById('infoModalBody').appendChild(btn);
     }
+     */
 }
