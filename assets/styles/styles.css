@@ -308,8 +308,8 @@ html, body {
 
 /* popup - modal */
 .fullscreen .modal-dialog {
-    width: 100vw;
-    height: 100vh;
+    width: auto;
+    height: auto;
     margin: 0;
     max-width: none;
 }
