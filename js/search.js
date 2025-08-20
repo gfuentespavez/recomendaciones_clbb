@@ -33,7 +33,7 @@ async function handleSearch(query, onFinish) {
         }
 
         if (!lugares || lugares.length === 0) {
-            alert('No se encontraron lugares.');
+            alert('No se encowntraron lugares.');
             return;
         }
 
