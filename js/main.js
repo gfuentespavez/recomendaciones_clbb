@@ -1,12 +1,9 @@
 import { map } from './map.js';
 import { loadData } from './dataLoader.js';
 import { setupForm } from './formHandler.js';
-import { setupFilters } from './filters.js';
+import { setupFilters, getActiveFilters } from './filters.js';
 import { initSearch } from './search.js';
 import { supabase } from './supabaseClient.js';
-
-//import { createClient } from "https://esm.sh/@supabase/supabase-js";
-//const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 🚀 Inicialización principal
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,9 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar módulos
     setupForm();
-    setupFilters();
     initSearch();
-    loadData();
+    setupFilters({
+        onFilterChange: () => disableAutoRefresh(),
+        onReset: () => enableAutoRefresh()
+    });
+
+    loadData(); // Carga inicial sin filtros
 
     // Cargar ícono SVG del menú
     loadSVGInline('assets/svg/menu-1.svg', '.menu-icon');
@@ -68,14 +69,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 🔄 Auto-refresh del mapa cada 10s (si no hay popup abierto)
+
+// 🔁 Auto-refresh controlado
+let autoRefreshEnabled = true;
+
+function enableAutoRefresh() {
+    autoRefreshEnabled = true;
+}
+
+function disableAutoRefresh() {
+    autoRefreshEnabled = false;
+}
+
+// 🔄 Auto-refresh del mapa cada 10s (solo si no hay filtros ni popup abierto)
 setInterval(() => {
     const popupVisible = document.querySelector('.mapboxgl-popup.open');
-    if (!popupVisible) {
+    const { category, comuna } = getActiveFilters();
+    const filtersActive = category !== null || comuna !== null;
+
+    if (!popupVisible && autoRefreshEnabled && !filtersActive) {
         loadData();
         console.log('Mapa actualizado automáticamente');
     }
 }, 10000);
+
 
 // 📦 Cargar SVG inline
 async function loadSVGInline(path, targetSelector) {
@@ -88,6 +105,7 @@ async function loadSVGInline(path, targetSelector) {
         console.error("Error cargando SVG:", error);
     }
 }
+
 
 // 🌐 Geocoding seguro via Edge Function
 async function geocodeGoogle(query) {
