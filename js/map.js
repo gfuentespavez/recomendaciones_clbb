@@ -18,7 +18,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90M
 
 export const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/germanfuentes/cmcybcvt501b001s4473g8ttb',
+    style: 'mapbox://styles/mapbox/dark-v11',
     center: [-73.05879, -36.83002],
     zoom: 16.73,
     pitch: 63,
