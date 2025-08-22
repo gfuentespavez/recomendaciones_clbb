@@ -24,10 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // FAB y offcanvas
     const fabMenu = document.getElementById('main-fab-menu');
-    const offcanvasEl = document.getElementById('menuOffcanvas');
-    if (fabMenu && offcanvasEl) {
-        offcanvasEl.addEventListener('shown.bs.offcanvas', () => fabMenu.style.display = 'none');
-        offcanvasEl.addEventListener('hidden.bs.offcanvas', () => fabMenu.style.display = 'block');
+    const offcanvasElement = document.getElementById('menuOffcanvas');
+    let offcanvasInstance = null;
+
+    if (offcanvasElement) {
+        offcanvasInstance = new bootstrap.Offcanvas(offcanvasElement);
+        offcanvasInstance.show();
+    }
+
+    if (fabMenu && offcanvasElement) {
+        offcanvasElement.addEventListener('shown.bs.offcanvas', () => fabMenu.style.display = 'none');
+        offcanvasElement.addEventListener('hidden.bs.offcanvas', () => fabMenu.style.display = 'block');
     }
 
     // Modal submit

@@ -76,7 +76,7 @@ html, body {
 
 /* ========== Offcanvas Fullscreen ========== */
 .offcanvas-custom {
-    width: 40vw !important;
+    width: 100vw !important;
     max-width: 100vw;
     height: 100vh !important;
     border-right: none;
