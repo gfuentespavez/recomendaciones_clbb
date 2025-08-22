@@ -6,7 +6,6 @@ import { initSearch } from './search.js';
 import { supabase } from './supabaseClient.js';
 
 // 🚀 Inicialización principal
-// 🚀 Inicialización principal
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM listo. Inicializando aplicación...');
 
