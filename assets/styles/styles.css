@@ -325,8 +325,7 @@ html, body {
     padding: 1.3rem;
 }
 
-.modal-title-custom {
-    font-family: "JetBrains Mono", monospace;
+.modal-title-custom {;
     font-size: 1.5rem;
     font-weight: 600;
 }
