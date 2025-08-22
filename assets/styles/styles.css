@@ -1,9 +1,3 @@
-@font-face {
-    font-family: 'Dobra Slab';
-    src: url('/assets/fonts/DobraSlab-Medium.ttf') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-}
 
 /* ========== Base Layout ========== */
 html, body {
@@ -332,7 +326,7 @@ html, body {
 }
 
 .modal-title-custom {
-    font-family: 'Dobra Slab', serif;
+    font-family: "JetBrains Mono", monospace;
     font-size: 1.5rem;
     font-weight: 600;
 }
