@@ -6,6 +6,7 @@ import { initSearch } from './search.js';
 import { supabase } from './supabaseClient.js';
 
 // 🚀 Inicialización principal
+// 🚀 Inicialización principal
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM listo. Inicializando aplicación...');
 
@@ -22,24 +23,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cargar ícono SVG del menú
     loadSVGInline('assets/svg/menu-1.svg', '.menu-icon');
 
-    // FAB y offcanvas
+    // FAB y offcanvas (sin apertura automática)
     const fabMenu = document.getElementById('main-fab-menu');
     const offcanvasElement = document.getElementById('menuOffcanvas');
-    let offcanvasInstance = null;
-
-    if (offcanvasElement) {
-        offcanvasInstance = new bootstrap.Offcanvas(offcanvasElement);
-        offcanvasInstance.show();
-    }
 
     if (fabMenu && offcanvasElement) {
+        const offcanvasInstance = new bootstrap.Offcanvas(offcanvasElement);
         offcanvasElement.addEventListener('shown.bs.offcanvas', () => fabMenu.style.display = 'none');
         offcanvasElement.addEventListener('hidden.bs.offcanvas', () => fabMenu.style.display = 'block');
     }
 
-    // Modal submit
-    const openModalBtn = document.getElementById('openModalBtn');
+    // Modal submit: apertura automática al cargar
     const submitModalEl = document.getElementById('submitModal');
+    if (submitModalEl) {
+        const modal = new bootstrap.Modal(submitModalEl);
+        modal.show();
+    }
+
+    // Botón para abrir modal manualmente (si lo necesitas)
+    const openModalBtn = document.getElementById('openModalBtn');
     if (openModalBtn && submitModalEl) {
         openModalBtn.addEventListener('click', () => {
             const offcanvasInstances = Array.from(document.querySelectorAll('.offcanvas'))
@@ -75,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 
 
 // 🔁 Auto-refresh controlado
