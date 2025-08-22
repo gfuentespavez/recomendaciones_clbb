@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient.js';
-import { callFindInstagram } from './instagram.js';
 
+//Modal con info del lugar
 export async function populateModal(lugar) {
     let selectedRating = null;
 
@@ -79,26 +79,4 @@ export async function populateModal(lugar) {
         container.appendChild(star);
         stars.push(star);
     }
-
-    // Lógica de Instagram
-    /*
-
-    const instaData = await callFindInstagram(
-        lugar.lugar,
-        lugar.formatted_address ?? lugar.comuna,
-        lugar.categoria
-    );
-
-    if (instaData && instaData.instagramAccount) {
-        const btn = document.createElement('button');
-        btn.textContent = '¿Qué dice el otakin?';
-        btn.classList.add('btn', 'btn-warning', 'mt-3');
-
-        btn.addEventListener('click', () => {
-            mostrarPostOtakin(instaData.otakinPostUrl);
-        });
-
-        document.getElementById('infoModalBody').appendChild(btn);
-    }
-     */
 }
