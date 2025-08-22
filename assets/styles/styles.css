@@ -316,7 +316,6 @@ html, body {
 }
 /* ========== Header ========== */
 #modal-titulo {
-    font-family: "Roboto Slab", serif;
     font-optical-sizing: auto;
     font-size: 3rem;
     font-style: normal;
